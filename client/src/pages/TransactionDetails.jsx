@@ -2,6 +2,7 @@ import React, { useEffect, useState } from 'react';
 import { useParams, useNavigate } from 'react-router-dom';
 import { ArrowLeft, Calendar, Package, User, FileText, ArrowUpRight, ArrowDownRight, RefreshCw } from 'lucide-react';
 import axios from 'axios';
+import toast, { Toaster } from 'react-hot-toast';
 
 const TransactionDetails = () => {
     const { id } = useParams();
@@ -13,64 +14,46 @@ const TransactionDetails = () => {
         const fetchTransaction = async () => {
             try {
                 const token = localStorage.getItem('token');
+                if (!token) {
+                    navigate('/login');
+                    return;
+                }
                 const res = await axios.get(`/api/stock/transactions/${id}`, {
                      headers: { Authorization: `Bearer ${token}` },
                 });
                 setTransaction(res.data);
             } catch (err) {
-                console.log("Using mock data for demo");
-                
-                // Mock data logic to match MoveHistory mock data
-                const mockId = parseInt(id);
-                let type = 'RECEIPT';
-                let itemName = 'Premium Widget X';
-                let itemSku = 'WID-X-001';
-                
-                if ([102, 104, 107, 108].includes(mockId)) {
-                    type = 'DELIVERY';
-                    itemName = 'Outbound Product Y';
-                    itemSku = 'OUT-Y-002';
-                } else if ([105, 110].includes(mockId)) {
-                    type = 'ADJUSTMENT';
-                    itemName = 'Adjusted Item Z';
-                    itemSku = 'ADJ-Z-003';
+                console.error("Error fetching transaction:", err);
+                if (err.response && err.response.status === 401) {
+                    toast.error("Session expired. Please login again.");
+                    localStorage.removeItem('token');
+                    navigate('/login');
+                } else {
+                    toast.error("Failed to load transaction details");
                 }
-
-                setTransaction({
-                    id: id,
-                    type: type,
-                    quantity: type === 'RECEIPT' ? 150 : (type === 'DELIVERY' ? -20 : 5),
-                    createdAt: new Date().toISOString(),
-                    stockItem: { 
-                        name: itemName, 
-                        sku: itemSku, 
-                        description: 'High-performance component for industrial use.',
-                        category: 'Electronics'
-                    },
-                    notes: type === 'RECEIPT' ? 'Received from Supplier A via FedEx.' : 'Dispatched to Client B via UPS.',
-                    performedBy: 'Warehouse Admin',
-                    reference: `REF-${mockId}-${Date.now().toString().slice(-4)}`,
-                    status: 'COMPLETED'
-                });
             } finally {
                 setLoading(false);
             }
         };
         fetchTransaction();
-    }, [id]);
+    }, [id, navigate]);
 
-    if (loading) return (
-        <div className="flex justify-center items-center h-64">
-            <div className="animate-spin rounded-full h-12 w-12 border-b-2 border-[#59598E]"></div>
-        </div>
-    );
+    if (loading) {
+        return (
+            <div className="flex items-center justify-center min-h-[60vh]">
+                <div className="animate-spin rounded-full h-12 w-12 border-t-2 border-b-2 border-[#59598E]"></div>
+            </div>
+        );
+    }
 
-    if (!transaction) return (
-        <div className="text-center p-12">
-            <h3 className="text-xl text-gray-600">Transaction not found</h3>
-            <button onClick={() => navigate(-1)} className="mt-4 text-[#59598E] hover:underline">Go Back</button>
-        </div>
-    );
+    if (!transaction) {
+        return (
+            <div className="text-center py-12">
+                <h2 className="text-2xl font-bold text-gray-400">Transaction not found</h2>
+                <button onClick={() => navigate(-1)} className="mt-4 text-[#59598E] hover:underline">Go Back</button>
+            </div>
+        );
+    }
 
     const getIcon = (type) => {
         switch(type) {
@@ -89,17 +72,31 @@ const TransactionDetails = () => {
     };
 
     return (
-        <div className="max-w-4xl mx-auto">
-            <button 
-                onClick={() => navigate(-1)}
-                className="flex items-center gap-2 text-white mb-6 hover:text-gray-200 transition-colors"
-            >
-                <ArrowLeft className="w-5 h-5" />
-                Back to List
-            </button>
+        <div className="max-w-4xl mx-auto space-y-6">
+            <Toaster position="top-right" />
+            {/* Header */}
+            <div className="flex items-center gap-4 bg-white p-6 rounded-lg shadow-md">
+                <button 
+                    onClick={() => navigate(-1)}
+                    className="flex items-center gap-2 text-[#59598E] hover:underline"
+                >
+                    <ArrowLeft className="w-5 h-5" />
+                    Back to List
+                </button>
+                <div className="flex-1 text-right">
+                    <p className="text-sm text-gray-500 mb-1">Quantity</p>
+                    <p className={`text-3xl font-bold ${
+                        transaction.type === 'RECEIPT' ? 'text-green-600' : 
+                        transaction.type === 'DELIVERY' ? 'text-blue-600' : 'text-gray-600'
+                    }`}>
+                        {transaction.type === 'RECEIPT' ? '+' : transaction.type === 'DELIVERY' ? '-' : ''}
+                        {Math.abs(transaction.quantity)}
+                    </p>
+                </div>
+            </div>
 
+            {/* Content */}
             <div className="bg-white rounded-2xl shadow-xl overflow-hidden border-t-4 border-[#59598E]">
-                {/* Header */}
                 <div className="p-8 border-b border-gray-100">
                     <div className="flex justify-between items-start">
                         <div className="flex items-center gap-6">
@@ -122,20 +119,9 @@ const TransactionDetails = () => {
                                 </p>
                             </div>
                         </div>
-                        <div className="text-right">
-                            <p className="text-sm text-gray-500 mb-1">Quantity</p>
-                            <p className={`text-3xl font-bold ${
-                                transaction.type === 'RECEIPT' ? 'text-green-600' : 
-                                transaction.type === 'DELIVERY' ? 'text-blue-600' : 'text-gray-600'
-                            }`}>
-                                {transaction.type === 'RECEIPT' ? '+' : transaction.type === 'DELIVERY' ? '-' : ''}
-                                {Math.abs(transaction.quantity)}
-                            </p>
-                        </div>
                     </div>
                 </div>
 
-                {/* Content */}
                 <div className="p-8 grid grid-cols-1 md:grid-cols-2 gap-8">
                     <div className="space-y-6">
                         <div>

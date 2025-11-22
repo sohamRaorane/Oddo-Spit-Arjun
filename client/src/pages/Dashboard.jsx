@@ -1,5 +1,6 @@
 import React, { useEffect, useState } from 'react';
 import { useNavigate } from 'react-router-dom';
+import axios from 'axios';
 import { Bar, Line } from 'react-chartjs-2';
 import {
     Chart as ChartJS,
@@ -33,24 +34,63 @@ ChartJS.register(
 const Dashboard = () => {
     const navigate = useNavigate();
     const [stats, setStats] = useState({
-        totalItems: 120,
-        totalStock: 4500,
-        totalValue: 25000,
-        lowStock: 5,
+        totalItems: 0,
+        totalStock: 0,
+        totalValue: 0, // Value calculation might need more backend logic later
+        lowStock: 0,
+        receipts: 0,
+        deliveries: 0
     });
+    const [recentActivity, setRecentActivity] = useState([]);
+
+    useEffect(() => {
+        const fetchStats = async () => {
+            try {
+                const token = localStorage.getItem('token');
+                if (!token) {
+                    navigate('/login');
+                    return;
+                }
+                const config = { headers: { Authorization: `Bearer ${token}` } };
+
+                const [statsRes, activityRes] = await Promise.all([
+                    axios.get('/api/stats', config),
+                    axios.get('/api/stock/transactions?limit=5', config)
+                ]);
+
+                setStats(prev => ({
+                    ...prev,
+                    totalItems: statsRes.data.totalItems,
+                    totalStock: statsRes.data.totalStock,
+                    totalValue: statsRes.data.totalValue,
+                    lowStock: statsRes.data.lowStock,
+                    receipts: statsRes.data.receipts,
+                    deliveries: statsRes.data.deliveries,
+                    // totalTransactions: res.data.totalTransactions
+                }));
+                setRecentActivity(activityRes.data);
+            } catch (error) {
+                console.error("Error fetching dashboard stats:", error);
+                if (error.response && error.response.status === 401) {
+                    localStorage.removeItem('token');
+                    navigate('/login');
+                }
+            }
+        };
+        fetchStats();
+    }, [navigate]);
 
     // Mock data for the specific cards in the sketch
     const receiptData = {
-        toReceive: 4,
-        late: 1,
-        operations: 6
+        toReceive: stats.receipts,
+        late: 0, // Backend doesn't support 'late' yet
+        operations: stats.receipts
     };
 
     const deliveryData = {
-        toDeliver: 4,
-        late: 1,
-        waiting: 2,
-        operations: 6
+        toDeliver: stats.deliveries,
+        late: 0,
+        operations: stats.deliveries
     };
 
     const chartOptions = {
@@ -116,10 +156,10 @@ const Dashboard = () => {
             {/* Stats Grid */}
             <div className="grid grid-cols-1 md:grid-cols-2 lg:grid-cols-4 gap-6">
                 {[
-                    { label: 'Total Stock Value', value: '$25,430', icon: DollarSign, color: 'text-green-600', bg: 'bg-green-100' },
-                    { label: 'Total Items', value: '1,240', icon: Package, color: 'text-blue-600', bg: 'bg-blue-100' },
-                    { label: 'Low Stock Alerts', value: '5', icon: AlertTriangle, color: 'text-red-600', bg: 'bg-red-100' },
-                    { label: 'Active Orders', value: '12', icon: Activity, color: 'text-purple-600', bg: 'bg-purple-100' },
+                    { label: 'Total Stock Value', value: `$${stats.totalValue?.toLocaleString() || '0'}`, icon: DollarSign, color: 'text-green-600', bg: 'bg-green-100' },
+                    { label: 'Total Items', value: stats.totalItems?.toLocaleString() || '0', icon: Package, color: 'text-blue-600', bg: 'bg-blue-100' },
+                    { label: 'Low Stock Alerts', value: stats.lowStock?.toString() || '0', icon: AlertTriangle, color: 'text-red-600', bg: 'bg-red-100' },
+                    { label: 'Total Stock', value: stats.totalStock?.toLocaleString() || '0', icon: Activity, color: 'text-purple-600', bg: 'bg-purple-100' },
                 ].map((stat, index) => (
                     <div key={index} className="bg-white rounded-2xl p-6 shadow-lg border-l-4 border-[#59598E] hover:transform hover:scale-105 transition-all duration-300">
                         <div className="flex justify-between items-start">
@@ -224,30 +264,40 @@ const Dashboard = () => {
                             </button>
                         </div>
                         <div className="space-y-4">
-                            {[
-                                { action: 'Received Stock', item: 'Widget A', qty: '+50', time: '2 mins ago', icon: ArrowDownRight, color: 'text-green-600', bg: 'bg-green-100' },
-                                { action: 'Dispatched Order', item: 'Gadget B', qty: '-12', time: '15 mins ago', icon: ArrowUpRight, color: 'text-blue-600', bg: 'bg-blue-100' },
-                                { action: 'Stock Adjustment', item: 'Tool C', qty: '-2', time: '1 hour ago', icon: AlertTriangle, color: 'text-yellow-600', bg: 'bg-yellow-100' },
-                            ].map((activity, i) => (
-                                <div key={i} className="flex items-center justify-between p-3 hover:bg-gray-50 rounded-lg transition-colors">
-                                    <div className="flex items-center gap-4">
-                                        <div className={`p-2 rounded-full ${activity.bg}`}>
-                                            <activity.icon className={`w-4 h-4 ${activity.color}`} />
+                            {recentActivity.length === 0 ? (
+                                <p className="text-gray-500 text-sm text-center py-4">No recent activity</p>
+                            ) : (
+                                recentActivity.map((activity, i) => (
+                                    <div key={i} className="flex items-center justify-between p-3 hover:bg-gray-50 rounded-lg transition-colors">
+                                        <div className="flex items-center gap-4">
+                                            <div className={`p-2 rounded-full ${
+                                                activity.type === 'RECEIPT' ? 'bg-green-100' : 
+                                                activity.type === 'DELIVERY' ? 'bg-blue-100' : 'bg-yellow-100'
+                                            }`}>
+                                                {activity.type === 'RECEIPT' ? <ArrowDownRight className="w-4 h-4 text-green-600" /> :
+                                                 activity.type === 'DELIVERY' ? <ArrowUpRight className="w-4 h-4 text-blue-600" /> :
+                                                 <AlertTriangle className="w-4 h-4 text-yellow-600" />}
+                                            </div>
+                                            <div>
+                                                <p className="text-sm font-bold text-gray-800">
+                                                    {activity.type === 'RECEIPT' ? 'Received Stock' : 
+                                                     activity.type === 'DELIVERY' ? 'Dispatched Order' : 'Stock Adjustment'}
+                                                </p>
+                                                <p className="text-xs text-gray-500">{activity.stockItem?.name || 'Unknown Item'}</p>
+                                            </div>
                                         </div>
-                                        <div>
-                                            <p className="text-sm font-bold text-gray-800">{activity.action}</p>
-                                            <p className="text-xs text-gray-500">{activity.item}</p>
+                                        <div className="text-right">
+                                            <p className={`text-sm font-bold ${activity.type === 'RECEIPT' ? 'text-green-600' : 'text-red-600'}`}>
+                                                {activity.type === 'RECEIPT' ? '+' : '-'}{Math.abs(activity.quantity)}
+                                            </p>
+                                            <div className="flex items-center gap-1 text-xs text-gray-400">
+                                                <Clock className="w-3 h-3" />
+                                                {new Date(activity.createdAt).toLocaleTimeString([], { hour: '2-digit', minute: '2-digit' })}
+                                            </div>
                                         </div>
                                     </div>
-                                    <div className="text-right">
-                                        <p className={`text-sm font-bold ${activity.qty.startsWith('+') ? 'text-green-600' : 'text-red-600'}`}>{activity.qty}</p>
-                                        <div className="flex items-center gap-1 text-xs text-gray-400">
-                                            <Clock className="w-3 h-3" />
-                                            {activity.time}
-                                        </div>
-                                    </div>
-                                </div>
-                            ))}
+                                ))
+                            )}
                         </div>
                     </div>
                 </div>

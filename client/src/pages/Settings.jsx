@@ -1,44 +1,153 @@
-import React, { useState } from 'react';
-import { User, Bell, Lock, Save, Shield, Mail, MapPin, Building, Package, ArrowLeft } from 'lucide-react';
+import React, { useState, useEffect } from 'react';
+import { useNavigate } from 'react-router-dom';
+import axios from 'axios';
+import toast, { Toaster } from 'react-hot-toast';
+import { User, Bell, Lock, Save, Shield, Mail, MapPin, Building, Package, ArrowLeft, X } from 'lucide-react';
 
 const Settings = () => {
+    const navigate = useNavigate();
     const [activeTab, setActiveTab] = useState('profile');
     const [selectedWarehouse, setSelectedWarehouse] = useState(null);
+    const [user, setUser] = useState({ name: '', email: '', bio: '' });
     const [notifications, setNotifications] = useState({
         email: true,
         stockLow: true,
         weeklyReport: false
     });
 
-    // Mock Data
-    const warehouses = [
-        { id: 1, name: 'Central Distribution Hub', code: 'WH-001', address: '123 Logistics Blvd, New York, NY 10001', capacity: '85%', items: 1250 },
-        { id: 2, name: 'West Coast Facility', code: 'WH-002', address: '456 Harbor Dr, Los Angeles, CA 90001', capacity: '45%', items: 850 },
-        { id: 3, name: 'European Branch', code: 'WH-EU-01', address: '789 Trade St, London, UK', capacity: '60%', items: 600 },
-    ];
+    const [warehouses, setWarehouses] = useState([]);
+    const [locations, setLocations] = useState([]);
+    const [warehouseInventory, setWarehouseInventory] = useState([]);
 
-    const locations = [
-        { id: 1, name: 'Zone A - Electronics', code: 'ZN-A', warehouse: 'Central Distribution Hub' },
-        { id: 2, name: 'Zone B - Perishables', code: 'ZN-B', warehouse: 'Central Distribution Hub' },
-        { id: 3, name: 'Zone C - Bulk Storage', code: 'ZN-C', warehouse: 'West Coast Facility' },
-        { id: 4, name: 'Zone D - Returns', code: 'ZN-D', warehouse: 'West Coast Facility' },
-        { id: 5, name: 'Zone E - High Value', code: 'ZN-E', warehouse: 'European Branch' },
-    ];
+    // Modal States
+    const [showWarehouseModal, setShowWarehouseModal] = useState(false);
+    const [showLocationModal, setShowLocationModal] = useState(false);
+    const [newWarehouse, setNewWarehouse] = useState({ name: '', code: '', address: '', capacity: '' });
+    const [newLocation, setNewLocation] = useState({ name: '', code: '', warehouseId: '' });
 
-    const warehouseInventory = [
-        { id: 1, name: 'Widget A', sku: 'WID-001', qty: 500, status: 'In Stock' },
-        { id: 2, name: 'Gadget B', sku: 'GAD-002', qty: 120, status: 'Low Stock' },
-        { id: 3, name: 'Tool C', sku: 'TOL-003', qty: 50, status: 'Critical' },
-        { id: 4, name: 'Component D', sku: 'COM-004', qty: 1000, status: 'In Stock' },
-    ];
+    useEffect(() => {
+        const fetchData = async () => {
+            try {
+                const token = localStorage.getItem('token');
+                if (!token) {
+                    navigate('/login');
+                    return;
+                }
+                const config = { headers: { Authorization: `Bearer ${token}` } };
 
-    const handleSave = () => {
-        // Mock save functionality
-        alert('Settings saved successfully!');
+                // Fetch User Profile
+                const userRes = await axios.get('/api/auth/me', config);
+                setUser(userRes.data);
+
+                const [whRes, locRes] = await Promise.all([
+                    axios.get('/api/warehouses', config),
+                    axios.get('/api/warehouses/locations', config)
+                ]);
+
+                setWarehouses(whRes.data);
+                setLocations(locRes.data);
+            } catch (error) {
+                console.error("Error fetching settings data:", error);
+                if (error.response && error.response.status === 401) {
+                    toast.error("Session expired. Please login again.");
+                    localStorage.removeItem('token');
+                    navigate('/login');
+                } else {
+                    toast.error("Failed to load settings data");
+                }
+            }
+        };
+        fetchData();
+    }, [navigate]);
+
+    // Fetch inventory when a warehouse is selected
+    useEffect(() => {
+        if (selectedWarehouse) {
+            const fetchInventory = async () => {
+                try {
+                    const token = localStorage.getItem('token');
+                    const res = await axios.get(`/api/warehouses/${selectedWarehouse.id}/inventory`, {
+                        headers: { Authorization: `Bearer ${token}` }
+                    });
+                    // Transform data for table
+                    const inventory = res.data.map(level => ({
+                        id: level.id,
+                        name: level.stockItem.name,
+                        sku: level.stockItem.sku,
+                        qty: level.quantity,
+                        status: level.quantity <= level.stockItem.minStock ? 'Low Stock' : 'In Stock'
+                    }));
+                    setWarehouseInventory(inventory);
+                } catch (error) {
+                    console.error("Error fetching warehouse inventory:", error);
+                }
+            };
+            fetchInventory();
+        }
+    }, [selectedWarehouse]);
+
+    const handleSave = async () => {
+        try {
+            const token = localStorage.getItem('token');
+            await axios.put('/api/auth/me', user, {
+                headers: { Authorization: `Bearer ${token}` }
+            });
+            toast.success('Profile updated successfully!');
+        } catch (error) {
+            console.error("Error updating profile:", error);
+            toast.error('Failed to update profile');
+        }
+    };
+
+    const handleCreateWarehouse = async (e) => {
+        e.preventDefault();
+        try {
+            const token = localStorage.getItem('token');
+            const res = await axios.post('/api/warehouses', newWarehouse, {
+                headers: { Authorization: `Bearer ${token}` }
+            });
+            setWarehouses([...warehouses, res.data]);
+            setShowWarehouseModal(false);
+            setNewWarehouse({ name: '', code: '', address: '', capacity: '' });
+            toast.success('Warehouse created successfully!');
+        } catch (error) {
+            console.error("Error creating warehouse:", error);
+            if (error.response && error.response.status === 401) {
+                toast.error("Session expired. Please login again.");
+                localStorage.removeItem('token');
+                navigate('/login');
+            } else {
+                toast.error('Failed to create warehouse');
+            }
+        }
+    };
+
+    const handleCreateLocation = async (e) => {
+        e.preventDefault();
+        try {
+            const token = localStorage.getItem('token');
+            const res = await axios.post('/api/warehouses/locations', newLocation, {
+                headers: { Authorization: `Bearer ${token}` }
+            });
+            setLocations([...locations, res.data]);
+            setShowLocationModal(false);
+            setNewLocation({ name: '', code: '', warehouseId: '' });
+            toast.success('Location created successfully!');
+        } catch (error) {
+            console.error("Error creating location:", error);
+            if (error.response && error.response.status === 401) {
+                toast.error("Session expired. Please login again.");
+                localStorage.removeItem('token');
+                navigate('/login');
+            } else {
+                toast.error('Failed to create location');
+            }
+        }
     };
 
     return (
         <div className="max-w-6xl mx-auto">
+            <Toaster position="top-right" />
             <h2 className="text-3xl font-bold mb-8 text-white tracking-wide drop-shadow-md">Settings</h2>
             
             <div className="flex flex-col md:flex-row gap-8">
@@ -112,8 +221,9 @@ const Settings = () => {
                                         <label className="block text-sm font-medium text-gray-700 mb-2">Full Name</label>
                                         <input 
                                             type="text" 
-                                            defaultValue="Admin User"
-                                            className="w-full px-4 py-2 rounded-lg border border-gray-300 focus:ring-2 focus:ring-[#59598E] focus:border-transparent outline-none transition-all"
+                                            value={user.name || ''}
+                                            onChange={(e) => setUser({...user, name: e.target.value})}
+                                            className="w-full px-4 py-2 rounded-lg border border-gray-300 focus:ring-2 focus:ring-[#59598E] focus:border-transparent outline-none transition-all text-gray-900"
                                         />
                                     </div>
                                     <div>
@@ -122,8 +232,9 @@ const Settings = () => {
                                             <Mail className="absolute left-3 top-2.5 w-5 h-5 text-gray-400" />
                                             <input 
                                                 type="email" 
-                                                defaultValue="admin@stockmaster.com"
-                                                className="w-full pl-10 pr-4 py-2 rounded-lg border border-gray-300 focus:ring-2 focus:ring-[#59598E] focus:border-transparent outline-none transition-all"
+                                                value={user.email || ''}
+                                                onChange={(e) => setUser({...user, email: e.target.value})}
+                                                className="w-full pl-10 pr-4 py-2 rounded-lg border border-gray-300 focus:ring-2 focus:ring-[#59598E] focus:border-transparent outline-none transition-all text-gray-900"
                                             />
                                         </div>
                                     </div>
@@ -131,10 +242,17 @@ const Settings = () => {
                                         <label className="block text-sm font-medium text-gray-700 mb-2">Bio</label>
                                         <textarea 
                                             rows="4"
-                                            className="w-full px-4 py-2 rounded-lg border border-gray-300 focus:ring-2 focus:ring-[#59598E] focus:border-transparent outline-none transition-all"
-                                            defaultValue="Warehouse manager with 5 years of experience."
+                                            className="w-full px-4 py-2 rounded-lg border border-gray-300 focus:ring-2 focus:ring-[#59598E] focus:border-transparent outline-none transition-all text-gray-900"
+                                            value={user.bio || ''}
+                                            onChange={(e) => setUser({...user, bio: e.target.value})}
                                         ></textarea>
                                     </div>
+                                </div>
+                                <div className="flex justify-end">
+                                    <button onClick={handleSave} className="bg-[#59598E] text-white px-6 py-2 rounded-lg font-semibold hover:bg-[#4A4A7A] transition-colors flex items-center gap-2">
+                                        <Save className="w-4 h-4" />
+                                        Save Changes
+                                    </button>
                                 </div>
                             </div>
                         )}
@@ -149,7 +267,10 @@ const Settings = () => {
                                         </h3>
                                         <p className="text-gray-500 text-sm mt-1">Manage your warehouse locations and inventory.</p>
                                     </div>
-                                    <button className="bg-[#59598E] text-white px-4 py-2 rounded-lg text-sm font-semibold hover:bg-[#4A4A7A] transition-colors">
+                                    <button 
+                                        onClick={() => setShowWarehouseModal(true)}
+                                        className="bg-[#59598E] text-white px-4 py-2 rounded-lg text-sm font-semibold hover:bg-[#4A4A7A] transition-colors"
+                                    >
                                         + Add Warehouse
                                     </button>
                                 </div>
@@ -264,7 +385,10 @@ const Settings = () => {
                                         </h3>
                                         <p className="text-gray-500 text-sm mt-1">Manage specific zones and locations within your warehouses.</p>
                                     </div>
-                                    <button className="bg-[#59598E] text-white px-4 py-2 rounded-lg text-sm font-semibold hover:bg-[#4A4A7A] transition-colors">
+                                    <button 
+                                        onClick={() => setShowLocationModal(true)}
+                                        className="bg-[#59598E] text-white px-4 py-2 rounded-lg text-sm font-semibold hover:bg-[#4A4A7A] transition-colors"
+                                    >
                                         + Add Location
                                     </button>
                                 </div>
@@ -284,19 +408,12 @@ const Settings = () => {
                                                 <tr 
                                                     key={loc.id} 
                                                     className="hover:bg-gray-50 transition-colors cursor-pointer"
-                                                    onClick={() => {
-                                                        const targetWarehouse = warehouses.find(w => w.name === loc.warehouse);
-                                                        if (targetWarehouse) {
-                                                            setActiveTab('warehouse');
-                                                            setSelectedWarehouse(targetWarehouse);
-                                                        }
-                                                    }}
                                                 >
-                                                    <td className="px-6 py-4 text-sm font-bold text-gray-900">{loc.name}</td>
+                                                    <td className="px-6 py-4 text-sm font-medium text-gray-900">{loc.name}</td>
                                                     <td className="px-6 py-4 text-sm text-gray-500 font-mono">{loc.code}</td>
-                                                    <td className="px-6 py-4 text-sm text-[#59598E] font-medium hover:underline">{loc.warehouse}</td>
+                                                    <td className="px-6 py-4 text-sm text-gray-600">{loc.warehouse?.name || 'N/A'}</td>
                                                     <td className="px-6 py-4 text-right text-sm font-medium">
-                                                        <button className="text-indigo-600 hover:text-indigo-900">Edit</button>
+                                                        <button className="text-[#59598E] hover:text-[#4a4a7a]">Edit</button>
                                                     </td>
                                                 </tr>
                                             ))}
@@ -380,6 +497,146 @@ const Settings = () => {
                     </div>
                 </div>
             </div>
+
+            {/* Add Warehouse Modal */}
+            {showWarehouseModal && (
+                <div className="fixed inset-0 flex items-center justify-center z-50">
+                    <div className="absolute inset-0 bg-black opacity-30"></div>
+                    <div className="bg-white rounded-2xl shadow-xl p-6 max-w-sm w-full z-10">
+                        <div className="flex justify-between items-center mb-4">
+                            <h3 className="text-lg font-bold text-gray-800">Add New Warehouse</h3>
+                            <button 
+                                onClick={() => setShowWarehouseModal(false)} 
+                                className="text-gray-500 hover:text-gray-700"
+                            >
+                                <X className="w-5 h-5" />
+                            </button>
+                        </div>
+
+                        <form onSubmit={handleCreateWarehouse}>
+                            <div className="space-y-4">
+                                <div>
+                                    <label className="block text-sm font-medium text-gray-700 mb-2">Warehouse Name</label>
+                                    <input 
+                                        type="text" 
+                                        value={newWarehouse.name}
+                                        onChange={(e) => setNewWarehouse({...newWarehouse, name: e.target.value})}
+                                        className="w-full px-4 py-2 rounded-lg border border-gray-300 focus:ring-2 focus:ring-[#59598E] focus:border-transparent outline-none transition-all text-gray-900"
+                                        required
+                                    />
+                                </div>
+                                <div>
+                                    <label className="block text-sm font-medium text-gray-700 mb-2">Warehouse Code</label>
+                                    <input 
+                                        type="text" 
+                                        value={newWarehouse.code}
+                                        onChange={(e) => setNewWarehouse({...newWarehouse, code: e.target.value})}
+                                        className="w-full px-4 py-2 rounded-lg border border-gray-300 focus:ring-2 focus:ring-[#59598E] focus:border-transparent outline-none transition-all text-gray-900"
+                                        required
+                                    />
+                                </div>
+                                <div>
+                                    <label className="block text-sm font-medium text-gray-700 mb-2">Address</label>
+                                    <input 
+                                        type="text" 
+                                        value={newWarehouse.address}
+                                        onChange={(e) => setNewWarehouse({...newWarehouse, address: e.target.value})}
+                                        className="w-full px-4 py-2 rounded-lg border border-gray-300 focus:ring-2 focus:ring-[#59598E] focus:border-transparent outline-none transition-all text-gray-900"
+                                        required
+                                    />
+                                </div>
+                                <div>
+                                    <label className="block text-sm font-medium text-gray-700 mb-2">Capacity</label>
+                                    <input 
+                                        type="number" 
+                                        value={newWarehouse.capacity}
+                                        onChange={(e) => setNewWarehouse({...newWarehouse, capacity: e.target.value})}
+                                        className="w-full px-4 py-2 rounded-lg border border-gray-300 focus:ring-2 focus:ring-[#59598E] focus:border-transparent outline-none transition-all text-gray-900"
+                                        required
+                                    />
+                                </div>
+                            </div>
+
+                            <div className="mt-6 flex justify-end">
+                                <button 
+                                    type="submit"
+                                    className="flex items-center gap-2 bg-[#59598E] text-white px-4 py-2 rounded-lg hover:bg-[#4A4A7A] transition-colors"
+                                >
+                                    <Save className="w-4 h-4" />
+                                    Create Warehouse
+                                </button>
+                            </div>
+                        </form>
+                    </div>
+                </div>
+            )}
+
+            {/* Add Location Modal */}
+            {showLocationModal && (
+                <div className="fixed inset-0 flex items-center justify-center z-50">
+                    <div className="absolute inset-0 bg-black opacity-30"></div>
+                    <div className="bg-white rounded-2xl shadow-xl p-6 max-w-sm w-full z-10">
+                        <div className="flex justify-between items-center mb-4">
+                            <h3 className="text-lg font-bold text-gray-800">Add New Location</h3>
+                            <button 
+                                onClick={() => setShowLocationModal(false)} 
+                                className="text-gray-500 hover:text-gray-700"
+                            >
+                                <X className="w-5 h-5" />
+                            </button>
+                        </div>
+
+                        <form onSubmit={handleCreateLocation}>
+                            <div className="space-y-4">
+                                <div>
+                                    <label className="block text-sm font-medium text-gray-700 mb-2">Location Name</label>
+                                    <input 
+                                        type="text" 
+                                        value={newLocation.name}
+                                        onChange={(e) => setNewLocation({...newLocation, name: e.target.value})}
+                                        className="w-full px-4 py-2 rounded-lg border border-gray-300 focus:ring-2 focus:ring-[#59598E] focus:border-transparent outline-none transition-all text-gray-900"
+                                        required
+                                    />
+                                </div>
+                                <div>
+                                    <label className="block text-sm font-medium text-gray-700 mb-2">Short Code</label>
+                                    <input 
+                                        type="text" 
+                                        value={newLocation.code}
+                                        onChange={(e) => setNewLocation({...newLocation, code: e.target.value})}
+                                        className="w-full px-4 py-2 rounded-lg border border-gray-300 focus:ring-2 focus:ring-[#59598E] focus:border-transparent outline-none transition-all text-gray-900"
+                                        required
+                                    />
+                                </div>
+                                <div>
+                                    <label className="block text-sm font-medium text-gray-700 mb-2">Select Warehouse</label>
+                                    <select 
+                                        value={newLocation.warehouseId}
+                                        onChange={(e) => setNewLocation({...newLocation, warehouseId: e.target.value})}
+                                        className="w-full px-4 py-2 rounded-lg border border-gray-300 focus:ring-2 focus:ring-[#59598E] focus:border-transparent outline-none transition-all text-gray-900"
+                                        required
+                                    >
+                                        <option value="">Choose a warehouse</option>
+                                        {warehouses.map((wh) => (
+                                            <option key={wh.id} value={wh.id}>{wh.name}</option>
+                                        ))}
+                                    </select>
+                                </div>
+                            </div>
+
+                            <div className="mt-6 flex justify-end">
+                                <button 
+                                    type="submit"
+                                    className="flex items-center gap-2 bg-[#59598E] text-white px-4 py-2 rounded-lg hover:bg-[#4A4A7A] transition-colors"
+                                >
+                                    <Save className="w-4 h-4" />
+                                    Create Location
+                                </button>
+                            </div>
+                        </form>
+                    </div>
+                </div>
+            )}
         </div>
     );
 };

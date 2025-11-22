@@ -50,6 +50,7 @@ model Location {
   warehouse   Warehouse    @relation(fields: [warehouseId], references: [id], onDelete: Cascade)
   stockLevels StockLevel[]
   transactions StockTransaction[]
+  toTransactions StockTransaction[] @relation("ToLocation")
 
   @@unique([warehouseId, code]) // Codes should be unique within a warehouse
   @@map("locations")
@@ -98,12 +99,14 @@ model StockTransaction {
   stockItemId String
   userId      String
   locationId  String?         // Optional: Track which location this transaction affected
+  toLocationId String?        // For Transfers: Destination location
 
   createdAt   DateTime        @default(now())
 
   stockItem   StockItem @relation(fields: [stockItemId], references: [id], onDelete: Cascade)
   user        User      @relation(fields: [userId], references: [id], onDelete: Cascade)
   location    Location? @relation(fields: [locationId], references: [id])
+  toLocation  Location? @relation("ToLocation", fields: [toLocationId], references: [id])
 
   @@map("stock_transactions")
 }
@@ -112,4 +115,5 @@ enum TransactionType {
   RECEIPT
   DELIVERY
   ADJUSTMENT
+  TRANSFER
 }

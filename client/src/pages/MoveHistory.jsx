@@ -13,46 +13,24 @@ const MoveHistory = () => {
         const fetchTransactions = async () => {
             try {
                 const token = localStorage.getItem('token');
+                if (!token) {
+                    navigate('/login');
+                    return;
+                }
                 const res = await axios.get('/api/stock/transactions', {
                     headers: { Authorization: `Bearer ${token}` },
                 });
-                if (res.data && res.data.length > 0) {
-                    setTransactions(res.data);
-                } else {
-                    // Fallback mock data if API returns empty
-                    setTransactions([
-                        { id: 101, type: 'RECEIPT', quantity: 500, createdAt: new Date().toISOString(), stockItem: { name: 'High-Performance Processor', sku: 'CPU-X99' } },
-                        { id: 102, type: 'DELIVERY', quantity: 20, createdAt: new Date(Date.now() - 3600000).toISOString(), stockItem: { name: 'Gaming Monitor 27"', sku: 'MON-G27' } },
-                        { id: 103, type: 'RECEIPT', quantity: 100, createdAt: new Date(Date.now() - 7200000).toISOString(), stockItem: { name: 'Mechanical Keyboard', sku: 'KB-MECH-01' } },
-                        { id: 104, type: 'DELIVERY', quantity: 5, createdAt: new Date(Date.now() - 86400000).toISOString(), stockItem: { name: 'Wireless Mouse', sku: 'MSE-WL-02' } },
-                        { id: 105, type: 'ADJUSTMENT', quantity: -2, createdAt: new Date(Date.now() - 90000000).toISOString(), stockItem: { name: 'USB-C Cable', sku: 'CBL-USB-C' } },
-                        { id: 106, type: 'RECEIPT', quantity: 200, createdAt: new Date(Date.now() - 172800000).toISOString(), stockItem: { name: 'SSD 1TB', sku: 'SSD-1TB-EVO' } },
-                        { id: 107, type: 'DELIVERY', quantity: 15, createdAt: new Date(Date.now() - 200000000).toISOString(), stockItem: { name: 'Graphics Card RTX 4090', sku: 'GPU-RTX-4090' } },
-                        { id: 108, type: 'DELIVERY', quantity: 50, createdAt: new Date(Date.now() - 250000000).toISOString(), stockItem: { name: 'DDR5 RAM 32GB', sku: 'RAM-DDR5-32' } },
-                        { id: 109, type: 'RECEIPT', quantity: 1000, createdAt: new Date(Date.now() - 300000000).toISOString(), stockItem: { name: 'Thermal Paste', sku: 'ACC-THM-PST' } },
-                        { id: 110, type: 'ADJUSTMENT', quantity: 10, createdAt: new Date(Date.now() - 400000000).toISOString(), stockItem: { name: 'Cooling Fan 120mm', sku: 'FAN-120-RGB' } },
-                    ]);
-                }
+                setTransactions(res.data);
             } catch (err) {
                 console.error('Error fetching transactions:', err);
-                // Fallback mock data on error
-                setTransactions([
-                    { id: 101, type: 'RECEIPT', quantity: 500, createdAt: new Date().toISOString(), stockItem: { name: 'High-Performance Processor', sku: 'CPU-X99' } },
-                    { id: 102, type: 'DELIVERY', quantity: 20, createdAt: new Date(Date.now() - 3600000).toISOString(), stockItem: { name: 'Gaming Monitor 27"', sku: 'MON-G27' } },
-                    { id: 103, type: 'RECEIPT', quantity: 100, createdAt: new Date(Date.now() - 7200000).toISOString(), stockItem: { name: 'Mechanical Keyboard', sku: 'KB-MECH-01' } },
-                    { id: 104, type: 'DELIVERY', quantity: 5, createdAt: new Date(Date.now() - 86400000).toISOString(), stockItem: { name: 'Wireless Mouse', sku: 'MSE-WL-02' } },
-                    { id: 105, type: 'ADJUSTMENT', quantity: -2, createdAt: new Date(Date.now() - 90000000).toISOString(), stockItem: { name: 'USB-C Cable', sku: 'CBL-USB-C' } },
-                    { id: 106, type: 'RECEIPT', quantity: 200, createdAt: new Date(Date.now() - 172800000).toISOString(), stockItem: { name: 'SSD 1TB', sku: 'SSD-1TB-EVO' } },
-                    { id: 107, type: 'DELIVERY', quantity: 15, createdAt: new Date(Date.now() - 200000000).toISOString(), stockItem: { name: 'Graphics Card RTX 4090', sku: 'GPU-RTX-4090' } },
-                    { id: 108, type: 'DELIVERY', quantity: 50, createdAt: new Date(Date.now() - 250000000).toISOString(), stockItem: { name: 'DDR5 RAM 32GB', sku: 'RAM-DDR5-32' } },
-                    { id: 109, type: 'RECEIPT', quantity: 1000, createdAt: new Date(Date.now() - 300000000).toISOString(), stockItem: { name: 'Thermal Paste', sku: 'ACC-THM-PST' } },
-                    { id: 110, type: 'ADJUSTMENT', quantity: 10, createdAt: new Date(Date.now() - 400000000).toISOString(), stockItem: { name: 'Cooling Fan 120mm', sku: 'FAN-120-RGB' } },
-                ]);
+                if (err.response && err.response.status === 401) {
+                    localStorage.removeItem('token');
+                    navigate('/login');
+                }
             }
         };
-
         fetchTransactions();
-    }, []);
+    }, [navigate]);
 
     const filteredTransactions = filterType === 'ALL' 
         ? transactions 

@@ -3,10 +3,10 @@ import { Link } from 'react-router-dom';
 import { 
     ChevronRight, Play, Star, ArrowRight, Menu, X, Zap, Shield, 
     TrendingUp, BarChart3, Users, Building, Globe, Check, 
-    ArrowUpRight, Calendar, Target, PieChart, Layers, Search,
+    ArrowUpRight, ArrowDownRight, Calendar, Target, PieChart, Layers, Search,
     Quote, CheckCircle, Sparkles, Rocket, Infinity, Cpu,
     Cloud, Database, Workflow, Bot, Satellite, Network,
-    Server, GitBranch, Wifi, Radio, SatelliteDish
+    Server, GitBranch, Wifi, Radio, SatelliteDish, DollarSign, Package, AlertTriangle, Activity
 } from 'lucide-react';
 
 const LandingPage = () => {
@@ -155,12 +155,142 @@ const LandingPage = () => {
                 </div>
                 <div className="mx-auto text-xs font-mono text-gray-400">stockmaster.app</div>
               </div>
-              <div className="p-2 bg-gray-800/30">
-                <img 
-                  src="https://cdn.dribbble.com/userupload/12666868/file/original-5f64310c4054f0f90d898833213966d8.png?resize=2400x1800" 
-                  alt="Dashboard Preview" 
-                  className="rounded-lg shadow-sm"
-                />
+              <div className="p-6 bg-gray-900">
+                {/* Mock Dashboard UI */}
+                <div className="space-y-6">
+                    {/* Header Mock */}
+                    <div className="flex justify-between items-center mb-8">
+                        <div>
+                            <div className="h-8 w-48 bg-gray-800 rounded-lg mb-2 animate-pulse"></div>
+                            <div className="h-4 w-64 bg-gray-800/50 rounded-lg animate-pulse"></div>
+                        </div>
+                        <div className="flex gap-3">
+                            <div className="h-10 w-10 bg-gray-800 rounded-full animate-pulse"></div>
+                            <div className="h-10 w-10 bg-gray-800 rounded-full animate-pulse"></div>
+                        </div>
+                    </div>
+
+                    {/* Stats Grid Mock */}
+                    <div className="grid grid-cols-1 md:grid-cols-4 gap-4">
+                        {[
+                            { label: 'Total Value', val: '$25,430', color: 'text-green-400', icon: DollarSign },
+                            { label: 'Total Items', val: '1,240', color: 'text-blue-400', icon: Package },
+                            { label: 'Low Stock', val: '5', color: 'text-red-400', icon: AlertTriangle },
+                            { label: 'Active Orders', val: '12', color: 'text-purple-400', icon: Activity }
+                        ].map((stat, i) => (
+                            <div key={i} className="bg-gray-800/50 border border-gray-700/50 p-4 rounded-xl backdrop-blur-sm">
+                                <div className="flex justify-between items-start">
+                                    <div>
+                                        <p className="text-gray-500 text-xs font-medium uppercase tracking-wider">{stat.label}</p>
+                                        <h3 className="text-xl font-bold text-white mt-1">{stat.val}</h3>
+                                    </div>
+                                    <div className={`p-2 rounded-lg bg-gray-800 ${stat.color}`}>
+                                        <stat.icon className="w-4 h-4" />
+                                    </div>
+                                </div>
+                            </div>
+                        ))}
+                    </div>
+
+                    {/* Main Content Mock */}
+                    <div className="grid grid-cols-1 lg:grid-cols-3 gap-6">
+                        {/* Left Column */}
+                        <div className="space-y-4">
+                            {/* Receipt Card Mock */}
+                            <div className="bg-gray-800/50 border border-gray-700/50 p-5 rounded-xl relative overflow-hidden">
+                                <div className="absolute top-0 left-0 w-1 h-full bg-[#59598E]"></div>
+                                <div className="flex justify-between items-center mb-4">
+                                    <h3 className="text-[#59598E] font-bold">Receipts</h3>
+                                    <ArrowDownRight className="w-5 h-5 text-[#59598E]" />
+                                </div>
+                                <div className="w-full bg-[#59598E]/20 border border-[#59598E]/30 text-white py-2.5 rounded-lg text-center font-semibold mb-4">
+                                    To Receive <span className="ml-2 bg-[#59598E] px-2 py-0.5 rounded text-xs">4</span>
+                                </div>
+                                <div className="grid grid-cols-2 gap-3">
+                                    <div className="bg-red-500/10 border border-red-500/20 p-2 rounded-lg text-center">
+                                        <span className="block text-lg font-bold text-red-400">1</span>
+                                        <span className="text-[10px] text-red-400/70 uppercase">Late</span>
+                                    </div>
+                                    <div className="bg-blue-500/10 border border-blue-500/20 p-2 rounded-lg text-center">
+                                        <span className="block text-lg font-bold text-blue-400">6</span>
+                                        <span className="text-[10px] text-blue-400/70 uppercase">Ops</span>
+                                    </div>
+                                </div>
+                            </div>
+
+                            {/* Delivery Card Mock */}
+                            <div className="bg-gray-800/50 border border-gray-700/50 p-5 rounded-xl relative overflow-hidden">
+                                <div className="absolute top-0 left-0 w-1 h-full bg-[#8383AD]"></div>
+                                <div className="flex justify-between items-center mb-4">
+                                    <h3 className="text-[#8383AD] font-bold">Deliveries</h3>
+                                    <ArrowUpRight className="w-5 h-5 text-[#8383AD]" />
+                                </div>
+                                <div className="w-full bg-[#8383AD]/20 border border-[#8383AD]/30 text-white py-2.5 rounded-lg text-center font-semibold mb-4">
+                                    To Deliver <span className="ml-2 bg-[#8383AD] px-2 py-0.5 rounded text-xs">4</span>
+                                </div>
+                                <div className="grid grid-cols-3 gap-2">
+                                    <div className="bg-red-500/10 border border-red-500/20 p-2 rounded-lg text-center">
+                                        <span className="block text-lg font-bold text-red-400">1</span>
+                                        <span className="text-[10px] text-red-400/70 uppercase">Late</span>
+                                    </div>
+                                    <div className="bg-yellow-500/10 border border-yellow-500/20 p-2 rounded-lg text-center">
+                                        <span className="block text-lg font-bold text-yellow-400">2</span>
+                                        <span className="text-[10px] text-yellow-400/70 uppercase">Wait</span>
+                                    </div>
+                                    <div className="bg-blue-500/10 border border-blue-500/20 p-2 rounded-lg text-center">
+                                        <span className="block text-lg font-bold text-blue-400">6</span>
+                                        <span className="text-[10px] text-blue-400/70 uppercase">Ops</span>
+                                    </div>
+                                </div>
+                            </div>
+                        </div>
+
+                        {/* Right Column - Chart & Activity */}
+                        <div className="lg:col-span-2 space-y-4">
+                            {/* Chart Mock */}
+                            <div className="bg-gray-800/50 border border-gray-700/50 p-5 rounded-xl h-48 flex flex-col">
+                                <h3 className="text-gray-400 text-sm font-bold mb-4">Stock Movement Trends</h3>
+                                <div className="flex-1 flex items-end justify-between gap-2 px-2">
+                                    {[40, 65, 30, 85, 50, 75, 45, 60, 90, 55, 70, 80].map((h, i) => (
+                                        <div key={i} className="w-full bg-gradient-to-t from-[#59598E]/20 to-[#59598E] rounded-t-sm relative group" style={{ height: `${h}%` }}>
+                                            <div className="absolute -top-8 left-1/2 -translate-x-1/2 bg-gray-900 text-white text-xs py-1 px-2 rounded opacity-0 group-hover:opacity-100 transition-opacity border border-gray-700">
+                                                {h * 10}
+                                            </div>
+                                        </div>
+                                    ))}
+                                </div>
+                                <div className="flex justify-between mt-2 text-xs text-gray-500 font-mono">
+                                    <span>Jan</span><span>Feb</span><span>Mar</span><span>Apr</span><span>May</span><span>Jun</span>
+                                </div>
+                            </div>
+
+                            {/* Activity Mock */}
+                            <div className="bg-gray-800/50 border border-gray-700/50 p-5 rounded-xl">
+                                <h3 className="text-gray-400 text-sm font-bold mb-4">Recent Activity</h3>
+                                <div className="space-y-3">
+                                    {[
+                                        { action: 'Received Stock', item: 'Widget A', time: '2m ago', icon: ArrowDownRight, color: 'text-green-400', bg: 'bg-green-500/10' },
+                                        { action: 'Dispatched Order', item: 'Gadget B', time: '15m ago', icon: ArrowUpRight, color: 'text-blue-400', bg: 'bg-blue-500/10' },
+                                        { action: 'Stock Adjustment', item: 'Tool C', time: '1h ago', icon: AlertTriangle, color: 'text-yellow-400', bg: 'bg-yellow-500/10' },
+                                    ].map((act, i) => (
+                                        <div key={i} className="flex items-center justify-between p-2 hover:bg-gray-800/50 rounded-lg transition-colors">
+                                            <div className="flex items-center gap-3">
+                                                <div className={`p-1.5 rounded-full ${act.bg}`}>
+                                                    <act.icon className={`w-3.5 h-3.5 ${act.color}`} />
+                                                </div>
+                                                <div>
+                                                    <p className="text-sm font-bold text-gray-200">{act.action}</p>
+                                                    <p className="text-xs text-gray-500">{act.item}</p>
+                                                </div>
+                                            </div>
+                                            <span className="text-xs text-gray-600 font-mono">{act.time}</span>
+                                        </div>
+                                    ))}
+                                </div>
+                            </div>
+                        </div>
+                    </div>
+                </div>
               </div>
             </div>
           </div>
