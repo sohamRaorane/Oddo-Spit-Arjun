@@ -1,5 +1,4 @@
 import React, { useEffect, useState } from 'react';
-import axios from 'axios';
 import { Bar } from 'react-chartjs-2';
 import {
     Chart as ChartJS,
@@ -29,55 +28,80 @@ const Dashboard = () => {
         deliveries: 35,
     });
 
-    useEffect(() => {
-        // Mock data is already set in initial state
-        // In a real scenario, we would fetch from API here
-    }, []);
+    // Mock data for the specific cards in the sketch
+    const receiptData = {
+        toReceive: 4,
+        late: 1,
+        operations: 6
+    };
 
-    const chartData = {
-        labels: ['Receipts', 'Deliveries'],
-        datasets: [
-            {
-                label: 'Transactions',
-                data: [stats.receipts, stats.deliveries],
-                backgroundColor: ['rgba(75, 192, 192, 0.5)', 'rgba(255, 99, 132, 0.5)'],
-                borderColor: ['rgba(75, 192, 192, 1)', 'rgba(255, 99, 132, 1)'],
-                borderWidth: 1,
-            },
-        ],
+    const deliveryData = {
+        toDeliver: 4,
+        late: 1,
+        waiting: 2,
+        operations: 6
     };
 
     return (
         <div>
-            <h2 className="text-3xl font-bold mb-8 text-gray-800">Dashboard</h2>
-
-            <div className="grid grid-cols-1 md:grid-cols-3 gap-6 mb-8">
-                <div className="bg-white p-6 rounded-lg shadow-md border-l-4 border-blue-500">
-                    <h3 className="text-gray-500 text-sm font-medium uppercase">Total Items</h3>
-                    <p className="text-3xl font-bold text-gray-800 mt-2">{stats.totalItems}</p>
-                </div>
-                <div className="bg-white p-6 rounded-lg shadow-md border-l-4 border-green-500">
-                    <h3 className="text-gray-500 text-sm font-medium uppercase">Total Stock Quantity</h3>
-                    <p className="text-3xl font-bold text-gray-800 mt-2">{stats.totalStock}</p>
-                </div>
-                <div className="bg-white p-6 rounded-lg shadow-md border-l-4 border-purple-500">
-                    <h3 className="text-gray-500 text-sm font-medium uppercase">Total Transactions</h3>
-                    <p className="text-3xl font-bold text-gray-800 mt-2">{stats.totalTransactions}</p>
-                </div>
+            <div className="flex justify-between items-center mb-8">
+                <h2 className="text-3xl font-light text-primary-highlight tracking-wide">Dashboard</h2>
+                <div className="bg-primary-light px-3 py-1 rounded text-white text-sm font-mono">4</div>
             </div>
 
-            <div className="grid grid-cols-1 md:grid-cols-2 gap-6">
-                <div className="bg-white p-6 rounded-lg shadow-md">
-                    <h3 className="text-lg font-bold mb-4 text-gray-800">Transaction Overview</h3>
-                    <Bar data={chartData} options={{ responsive: true }} />
+            <div className="grid grid-cols-1 md:grid-cols-2 gap-8">
+                {/* Receipt Card */}
+                <div className="bg-[#1a1a2e] border border-primary rounded-2xl p-8 relative overflow-hidden shadow-lg hover:shadow-primary/20 transition-shadow">
+                    {/* Card Title */}
+                    <h3 className="text-2xl text-primary-highlight mb-8 font-light">Receipt</h3>
+
+                    <div className="flex justify-between items-end">
+                        {/* Action Button */}
+                        <button className="bg-primary hover:bg-primary-light text-white px-6 py-3 rounded-lg shadow-md transition-colors text-lg">
+                            {receiptData.toReceive} to receive
+                        </button>
+
+                        {/* Stats List */}
+                        <div className="text-right space-y-1">
+                            <p className="text-primary-lightest text-sm">
+                                <span className="text-white font-bold">{receiptData.late}</span> Late
+                            </p>
+                            <p className="text-primary-lightest text-sm">
+                                <span className="text-white font-bold">{receiptData.operations}</span> operations
+                            </p>
+                        </div>
+                    </div>
+
+                    {/* Decorative border line similar to sketch */}
+                    <div className="absolute top-0 left-0 w-full h-1 bg-gradient-to-r from-primary to-primary-light"></div>
                 </div>
 
-                {/* Placeholder for other widgets */}
-                <div className="bg-white p-6 rounded-lg shadow-md">
-                    <h3 className="text-lg font-bold mb-4 text-gray-800">Quick Actions</h3>
-                    <div className="space-y-4">
-                        <p className="text-gray-600">Navigate to Operations to manage stock.</p>
+                {/* Delivery Card */}
+                <div className="bg-[#1a1a2e] border border-primary rounded-2xl p-8 relative overflow-hidden shadow-lg hover:shadow-primary/20 transition-shadow">
+                    {/* Card Title */}
+                    <h3 className="text-2xl text-primary-highlight mb-8 font-light">Delivery</h3>
+
+                    <div className="flex justify-between items-end">
+                        {/* Action Button */}
+                        <button className="bg-primary hover:bg-primary-light text-white px-6 py-3 rounded-lg shadow-md transition-colors text-lg">
+                            {deliveryData.toDeliver} to Deliver
+                        </button>
+
+                        {/* Stats List */}
+                        <div className="text-right space-y-1">
+                            <p className="text-primary-lightest text-sm">
+                                <span className="text-white font-bold">{deliveryData.late}</span> Late
+                            </p>
+                            <p className="text-primary-lightest text-sm">
+                                <span className="text-white font-bold">{deliveryData.waiting}</span> waiting
+                            </p>
+                            <p className="text-primary-lightest text-sm">
+                                <span className="text-white font-bold">{deliveryData.operations}</span> operations
+                            </p>
+                        </div>
                     </div>
+                    {/* Decorative border line */}
+                    <div className="absolute top-0 left-0 w-full h-1 bg-gradient-to-r from-primary to-primary-light"></div>
                 </div>
             </div>
         </div>

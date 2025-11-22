@@ -50,10 +50,10 @@ const Operations = () => {
 
     return (
         <div>
-            <h2 className="text-3xl font-bold mb-8 text-gray-800">Operations</h2>
+            <h2 className="text-3xl font-bold mb-8 text-[#59598E]">Operations</h2>
 
-            <div className="max-w-xl bg-white p-8 rounded-lg shadow-md">
-                <h3 className="text-xl font-semibold mb-6">New Transaction</h3>
+            <div className="max-w-xl bg-white p-8 rounded-lg shadow-md border-t-4 border-[#59598E]">
+                <h3 className="text-xl font-semibold mb-6 text-[#59598E]">New Transaction</h3>
                 {message && (
                     <div className={`p-4 mb-4 rounded ${message.includes('success') ? 'bg-green-100 text-green-700' : 'bg-red-100 text-red-700'}`}>
                         {message}
@@ -66,11 +66,11 @@ const Operations = () => {
                             name="type"
                             value={formData.type}
                             onChange={handleChange}
-                            className="w-full p-2 border rounded focus:outline-none focus:ring-2 focus:ring-red-500"
+                            className="w-full p-2 border border-[#A3A3C0] rounded focus:outline-none focus:ring-2 focus:ring-[#8383AD] text-gray-900 bg-white"
                         >
-                            <option value="RECEIPT">Receipt (In)</option>
-                            <option value="DELIVERY">Delivery (Out)</option>
-                            <option value="ADJUSTMENT">Adjustment</option>
+                            <option value="RECEIPT" className="text-gray-900 bg-white">Receipt (In)</option>
+                            <option value="DELIVERY" className="text-gray-900 bg-white">Delivery (Out)</option>
+                            <option value="ADJUSTMENT" className="text-gray-900 bg-white">Adjustment</option>
                         </select>
                     </div>
 
@@ -80,12 +80,12 @@ const Operations = () => {
                             name="stockItemId"
                             value={formData.stockItemId}
                             onChange={handleChange}
-                            className="w-full p-2 border rounded focus:outline-none focus:ring-2 focus:ring-red-500"
+                            className="w-full p-2 border border-[#A3A3C0] rounded focus:outline-none focus:ring-2 focus:ring-[#8383AD] text-gray-900 bg-white"
                             required
                         >
-                            <option value="">Select Item</option>
+                            <option value="" className="text-gray-500">Select Item</option>
                             {items.map((item) => (
-                                <option key={item.id} value={item.id}>
+                                <option key={item.id} value={item.id} className="text-gray-900 bg-white">
                                     {item.name} (SKU: {item.sku})
                                 </option>
                             ))}
@@ -100,14 +100,14 @@ const Operations = () => {
                             value={formData.quantity}
                             onChange={handleChange}
                             min="1"
-                            className="w-full p-2 border rounded focus:outline-none focus:ring-2 focus:ring-red-500"
+                            className="w-full p-2 border border-[#A3A3C0] rounded focus:outline-none focus:ring-2 focus:ring-[#8383AD]"
                             required
                         />
                     </div>
 
                     <button
                         type="submit"
-                        className="w-full bg-red-600 text-white py-2 rounded hover:bg-red-700 transition-colors font-bold"
+                        className="w-full bg-[#59598E] text-white py-2 rounded hover:bg-[#6E6E9D] transition-colors font-bold"
                     >
                         SUBMIT TRANSACTION
                     </button>

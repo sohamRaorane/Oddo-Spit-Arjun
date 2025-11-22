@@ -1,6 +1,6 @@
 const bcrypt = require('bcryptjs');
 const jwt = require('jsonwebtoken');
-const { User } = require('../models');
+const prisma = require('../config/database');
 require('dotenv').config();
 
 const signup = async (req, res) => {
@@ -13,7 +13,7 @@ const signup = async (req, res) => {
         }
 
         // Check if user exists
-        const existingUser = await User.findOne({ where: { loginId } });
+        const existingUser = await prisma.user.findUnique({ where: { loginId } });
         if (existingUser) {
             return res.status(400).json({ message: 'User already exists' });
         }
@@ -23,10 +23,12 @@ const signup = async (req, res) => {
         const hashedPassword = await bcrypt.hash(password, salt);
 
         // Create user
-        const newUser = await User.create({
-            loginId,
-            email,
-            password: hashedPassword,
+        const newUser = await prisma.user.create({
+            data: {
+                loginId,
+                email,
+                password: hashedPassword,
+            },
         });
 
         res.status(201).json({ message: 'User created successfully' });
@@ -41,7 +43,7 @@ const login = async (req, res) => {
         const { loginId, password } = req.body;
 
         // Check user
-        const user = await User.findOne({ where: { loginId } });
+        const user = await prisma.user.findUnique({ where: { loginId } });
         if (!user) {
             return res.status(400).json({ message: 'Invalid credentials' });
         }

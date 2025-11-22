@@ -1,9 +1,9 @@
-const { StockItem, Transaction } = require('../models');
+const prisma = require('../config/database');
 
 // Get all stock items
 const getStockItems = async (req, res) => {
     try {
-        const items = await StockItem.findAll();
+        const items = await prisma.stockItem.findMany();
         res.json(items);
     } catch (error) {
         res.status(500).json({ message: 'Server error' });
@@ -14,7 +14,9 @@ const getStockItems = async (req, res) => {
 const createStockItem = async (req, res) => {
     try {
         const { name, sku, description } = req.body;
-        const newItem = await StockItem.create({ name, sku, description });
+        const newItem = await prisma.stockItem.create({
+            data: { name, sku, description },
+        });
         res.status(201).json(newItem);
     } catch (error) {
         res.status(500).json({ message: 'Server error' });
@@ -25,7 +27,9 @@ const createStockItem = async (req, res) => {
 const createTransaction = async (req, res) => {
     try {
         const { stockItemId, type, quantity } = req.body;
-        const item = await StockItem.findByPk(stockItemId);
+        const item = await prisma.stockItem.findUnique({
+            where: { id: parseInt(stockItemId) },
+        });
 
         if (!item) {
             return res.status(404).json({ message: 'Item not found' });
@@ -42,13 +46,18 @@ const createTransaction = async (req, res) => {
         }
 
         // Update stock quantity
-        await item.update({ quantity: newQuantity });
+        await prisma.stockItem.update({
+            where: { id: item.id },
+            data: { quantity: newQuantity },
+        });
 
         // Create transaction record
-        const transaction = await Transaction.create({
-            stockItemId,
-            type,
-            quantity,
+        const transaction = await prisma.transaction.create({
+            data: {
+                stockItemId: parseInt(stockItemId),
+                type,
+                quantity,
+            },
         });
 
         res.status(201).json(transaction);
@@ -61,9 +70,13 @@ const createTransaction = async (req, res) => {
 // Get transactions
 const getTransactions = async (req, res) => {
     try {
-        const transactions = await Transaction.findAll({
-            include: [{ model: StockItem, attributes: ['name', 'sku'] }],
-            order: [['createdAt', 'DESC']],
+        const transactions = await prisma.transaction.findMany({
+            include: {
+                stockItem: {
+                    select: { name: true, sku: true },
+                },
+            },
+            orderBy: { createdAt: 'desc' },
         });
         res.json(transactions);
     } catch (error) {
