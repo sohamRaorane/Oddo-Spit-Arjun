@@ -27,9 +27,9 @@ const StockList = () => {
 
     return (
         <div>
-            <h2 className="text-3xl font-bold mb-8 text-[#59598E]">Stock List</h2>
+            <h2 className="text-3xl font-bold mb-8 text-white tracking-wide drop-shadow-md">Stock List</h2>
 
-            <div className="bg-white rounded-lg shadow-md overflow-hidden border-t-4 border-[#59598E]">
+            <div className="bg-white rounded-2xl shadow-xl overflow-hidden border-t-4 border-[#59598E]">
                 <table className="min-w-full divide-y divide-gray-200">
                     <thead className="bg-[#D8D8E0]">
                         <tr>

@@ -50,10 +50,10 @@ const Operations = () => {
 
     return (
         <div>
-            <h2 className="text-3xl font-bold mb-8 text-[#59598E]">Operations</h2>
+            <h2 className="text-3xl font-bold mb-8 text-white tracking-wide drop-shadow-md">Operations</h2>
 
-            <div className="max-w-xl bg-white p-8 rounded-lg shadow-md border-t-4 border-[#59598E]">
-                <h3 className="text-xl font-semibold mb-6 text-[#59598E]">New Transaction</h3>
+            <div className="max-w-xl bg-white p-8 rounded-2xl shadow-xl border-t-4 border-[#59598E]">
+                <h3 className="text-2xl font-bold mb-6 text-[#59598E]">New Transaction</h3>
                 {message && (
                     <div className={`p-4 mb-4 rounded ${message.includes('success') ? 'bg-green-100 text-green-700' : 'bg-red-100 text-red-700'}`}>
                         {message}

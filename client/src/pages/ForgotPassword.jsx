@@ -1,5 +1,6 @@
 import React, { useState } from 'react';
 import { Link } from 'react-router-dom';
+import BackgroundDoodles from '../components/BackgroundDoodles';
 
 const ForgotPassword = () => {
     const [email, setEmail] = useState('');
@@ -12,8 +13,10 @@ const ForgotPassword = () => {
     };
 
     return (
-        <div className="min-h-screen flex items-center justify-center bg-[#D8D8E0]">
-            <div className="bg-white p-8 rounded-lg shadow-md w-96 border-t-4 border-[#59598E]">
+        <div className="min-h-screen flex items-center justify-center bg-[#59598E] p-4 relative overflow-hidden">
+            <BackgroundDoodles />
+            
+            <div className="bg-white p-8 rounded-lg shadow-md w-96 border-t-4 border-[#59598E] relative z-10">
                 <h2 className="text-2xl font-bold mb-6 text-center text-[#59598E]">Forgot Password</h2>
                 
                 {message && (

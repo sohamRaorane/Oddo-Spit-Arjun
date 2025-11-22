@@ -45,63 +45,58 @@ const Dashboard = () => {
     return (
         <div>
             <div className="flex justify-between items-center mb-8">
-                <h2 className="text-3xl font-light text-primary-highlight tracking-wide">Dashboard</h2>
-                <div className="bg-primary-light px-3 py-1 rounded text-white text-sm font-mono">4</div>
+                <h2 className="text-3xl font-bold text-white tracking-wide drop-shadow-md">Dashboard</h2>
+                <div className="bg-white/20 backdrop-blur-md px-4 py-2 rounded-full text-white text-sm font-mono border border-white/30 shadow-sm">4 Notifications</div>
             </div>
 
             <div className="grid grid-cols-1 md:grid-cols-2 gap-8">
                 {/* Receipt Card */}
-                <div className="bg-[#1a1a2e] border border-primary rounded-2xl p-8 relative overflow-hidden shadow-lg hover:shadow-primary/20 transition-shadow">
+                <div className="bg-white rounded-2xl p-8 relative overflow-hidden shadow-xl hover:shadow-2xl transition-all duration-300 border-t-4 border-[#59598E]">
                     {/* Card Title */}
-                    <h3 className="text-2xl text-primary-highlight mb-8 font-light">Receipt</h3>
+                    <h3 className="text-2xl text-[#59598E] mb-8 font-bold">Receipt</h3>
 
                     <div className="flex justify-between items-end">
                         {/* Action Button */}
-                        <button className="bg-primary hover:bg-primary-light text-white px-6 py-3 rounded-lg shadow-md transition-colors text-lg">
+                        <button className="bg-[#59598E] hover:bg-[#6E6E9D] text-white px-6 py-3 rounded-xl shadow-lg hover:shadow-xl transition-all transform hover:-translate-y-1 font-semibold">
                             {receiptData.toReceive} to receive
                         </button>
 
                         {/* Stats List */}
                         <div className="text-right space-y-1">
-                            <p className="text-primary-lightest text-sm">
-                                <span className="text-white font-bold">{receiptData.late}</span> Late
+                            <p className="text-gray-500 text-sm font-medium">
+                                <span className="text-[#59598E] font-bold text-lg">{receiptData.late}</span> Late
                             </p>
-                            <p className="text-primary-lightest text-sm">
-                                <span className="text-white font-bold">{receiptData.operations}</span> operations
+                            <p className="text-gray-500 text-sm font-medium">
+                                <span className="text-[#59598E] font-bold text-lg">{receiptData.operations}</span> operations
                             </p>
                         </div>
                     </div>
-
-                    {/* Decorative border line similar to sketch */}
-                    <div className="absolute top-0 left-0 w-full h-1 bg-gradient-to-r from-primary to-primary-light"></div>
                 </div>
 
                 {/* Delivery Card */}
-                <div className="bg-[#1a1a2e] border border-primary rounded-2xl p-8 relative overflow-hidden shadow-lg hover:shadow-primary/20 transition-shadow">
+                <div className="bg-white rounded-2xl p-8 relative overflow-hidden shadow-xl hover:shadow-2xl transition-all duration-300 border-t-4 border-[#59598E]">
                     {/* Card Title */}
-                    <h3 className="text-2xl text-primary-highlight mb-8 font-light">Delivery</h3>
+                    <h3 className="text-2xl text-[#59598E] mb-8 font-bold">Delivery</h3>
 
                     <div className="flex justify-between items-end">
                         {/* Action Button */}
-                        <button className="bg-primary hover:bg-primary-light text-white px-6 py-3 rounded-lg shadow-md transition-colors text-lg">
+                        <button className="bg-[#59598E] hover:bg-[#6E6E9D] text-white px-6 py-3 rounded-xl shadow-lg hover:shadow-xl transition-all transform hover:-translate-y-1 font-semibold">
                             {deliveryData.toDeliver} to Deliver
                         </button>
 
                         {/* Stats List */}
                         <div className="text-right space-y-1">
-                            <p className="text-primary-lightest text-sm">
-                                <span className="text-white font-bold">{deliveryData.late}</span> Late
+                            <p className="text-gray-500 text-sm font-medium">
+                                <span className="text-[#59598E] font-bold text-lg">{deliveryData.late}</span> Late
                             </p>
-                            <p className="text-primary-lightest text-sm">
-                                <span className="text-white font-bold">{deliveryData.waiting}</span> waiting
+                            <p className="text-gray-500 text-sm font-medium">
+                                <span className="text-[#59598E] font-bold text-lg">{deliveryData.waiting}</span> waiting
                             </p>
-                            <p className="text-primary-lightest text-sm">
-                                <span className="text-white font-bold">{deliveryData.operations}</span> operations
+                            <p className="text-gray-500 text-sm font-medium">
+                                <span className="text-[#59598E] font-bold text-lg">{deliveryData.operations}</span> operations
                             </p>
                         </div>
                     </div>
-                    {/* Decorative border line */}
-                    <div className="absolute top-0 left-0 w-full h-1 bg-gradient-to-r from-primary to-primary-light"></div>
                 </div>
             </div>
         </div>
