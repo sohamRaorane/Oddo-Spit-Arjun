@@ -11,38 +11,105 @@ datasource db {
 }
 
 model User {
-  id       Int      @id @default(autoincrement())
-  loginId  String   @unique
-  email    String   @unique
-  password String
+  id        String   @id @default(cuid())
+  loginId   String   @unique
+  email     String   @unique
+  password  String
+  name      String?
+  bio       String?
   createdAt DateTime @default(now())
   updatedAt DateTime @updatedAt
+
+  transactions StockTransaction[]
+
+  @@map("users")
+}
+
+model Warehouse {
+  id        String   @id @default(cuid())
+  name      String
+  code      String   @unique
+  address   String?
+  capacity  String?  // e.g. "85%" or "10000 units"
+  createdAt DateTime @default(now())
+  updatedAt DateTime @updatedAt
+
+  locations Location[]
+
+  @@map("warehouses")
+}
+
+model Location {
+  id          String   @id @default(cuid())
+  name        String
+  code        String
+  warehouseId String
+  createdAt   DateTime @default(now())
+  updatedAt   DateTime @updatedAt
+
+  warehouse   Warehouse    @relation(fields: [warehouseId], references: [id], onDelete: Cascade)
+  stockLevels StockLevel[]
+  transactions StockTransaction[]
+
+  @@unique([warehouseId, code]) // Codes should be unique within a warehouse
+  @@map("locations")
 }
 
 model StockItem {
-  id          Int           @id @default(autoincrement())
+  id          String   @id @default(cuid())
   name        String
-  sku         String        @unique
-  quantity    Int           @default(0)
+  sku         String   @unique
   description String?
-  transactions Transaction[]
-  createdAt   DateTime      @default(now())
-  updatedAt   DateTime      @updatedAt
+  category    String?
+  price       Decimal  @default(0.0)
+  minStock    Int      @default(10) // Low stock threshold
+  createdAt   DateTime @default(now())
+  updatedAt   DateTime @updatedAt
+
+  stockLevels  StockLevel[]
+  transactions StockTransaction[]
+
+  @@map("stock_items")
+}
+
+// Tracks quantity of an item at a specific location
+model StockLevel {
+  id          String   @id @default(cuid())
+  stockItemId String
+  locationId  String
+  quantity    Int      @default(0)
+  updatedAt   DateTime @updatedAt
+
+  stockItem StockItem @relation(fields: [stockItemId], references: [id], onDelete: Cascade)
+  location  Location  @relation(fields: [locationId], references: [id], onDelete: Cascade)
+
+  @@unique([stockItemId, locationId])
+  @@map("stock_levels")
+}
+
+model StockTransaction {
+  id          String          @id @default(cuid())
+  type        TransactionType
+  quantity    Int
+  reference   String?         // PO Number or Reference ID
+  notes       String?
+  status      String          @default("COMPLETED") // COMPLETED, PENDING
+  
+  stockItemId String
+  userId      String
+  locationId  String?         // Optional: Track which location this transaction affected
+
+  createdAt   DateTime        @default(now())
+
+  stockItem   StockItem @relation(fields: [stockItemId], references: [id], onDelete: Cascade)
+  user        User      @relation(fields: [userId], references: [id], onDelete: Cascade)
+  location    Location? @relation(fields: [locationId], references: [id])
+
+  @@map("stock_transactions")
 }
 
 enum TransactionType {
   RECEIPT
   DELIVERY
   ADJUSTMENT
-}
-
-model Transaction {
-  id          Int             @id @default(autoincrement())
-  type        TransactionType
-  quantity    Int
-  date        DateTime        @default(now())
-  stockItemId Int
-  stockItem   StockItem       @relation(fields: [stockItemId], references: [id])
-  createdAt   DateTime        @default(now())
-  updatedAt   DateTime        @updatedAt
 }

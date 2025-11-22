@@ -26,55 +26,90 @@ const createStockItem = async (req, res) => {
 // Create transaction (Receipt/Delivery)
 const createTransaction = async (req, res) => {
     try {
-        const { stockItemId, type, quantity } = req.body;
+        const { stockItemId, type, quantity, locationId, reference, notes } = req.body;
+        const userId = req.user.id; // From auth middleware
+
+        // 1. Validate Item
         const item = await prisma.stockItem.findUnique({
-            where: { id: parseInt(stockItemId) },
+            where: { id: stockItemId },
         });
 
         if (!item) {
             return res.status(404).json({ message: 'Item not found' });
         }
 
-        let newQuantity = item.quantity;
-        if (type === 'RECEIPT') {
-            newQuantity += quantity;
-        } else if (type === 'DELIVERY') {
-            if (item.quantity < quantity) {
-                return res.status(400).json({ message: 'Insufficient stock' });
+        // 2. Handle Stock Level Logic (Per Location)
+        if (locationId) {
+            const stockLevel = await prisma.stockLevel.findUnique({
+                where: {
+                    stockItemId_locationId: {
+                        stockItemId: stockItemId,
+                        locationId: locationId
+                    }
+                }
+            });
+
+            let currentQty = stockLevel ? stockLevel.quantity : 0;
+
+            if (type === 'DELIVERY') {
+                if (currentQty < quantity) {
+                    return res.status(400).json({ message: 'Insufficient stock at this location' });
+                }
+                // Update or create stock level
+                await prisma.stockLevel.upsert({
+                    where: { stockItemId_locationId: { stockItemId, locationId } },
+                    update: { quantity: { decrement: quantity } },
+                    create: { stockItemId, locationId, quantity: -quantity } // Should not happen if check passed
+                });
+            } else if (type === 'RECEIPT') {
+                await prisma.stockLevel.upsert({
+                    where: { stockItemId_locationId: { stockItemId, locationId } },
+                    update: { quantity: { increment: quantity } },
+                    create: { stockItemId, locationId, quantity: quantity }
+                });
             }
-            newQuantity -= quantity;
         }
 
-        // Update stock quantity
-        await prisma.stockItem.update({
-            where: { id: item.id },
-            data: { quantity: newQuantity },
-        });
-
-        // Create transaction record
-        const transaction = await prisma.transaction.create({
+        // 3. Create Transaction Record
+        const transaction = await prisma.stockTransaction.create({
             data: {
-                stockItemId: parseInt(stockItemId),
                 type,
                 quantity,
+                stockItemId,
+                userId,
+                locationId,
+                reference,
+                notes,
+                status: 'COMPLETED'
             },
+            include: {
+                stockItem: true,
+                user: true,
+                location: true
+            }
         });
 
         res.status(201).json(transaction);
     } catch (error) {
         console.error(error);
-        res.status(500).json({ message: 'Server error' });
+        res.status(500).json({ message: 'Server error processing transaction' });
     }
 };
 
 // Get transactions
 const getTransactions = async (req, res) => {
     try {
-        const transactions = await prisma.transaction.findMany({
+        const transactions = await prisma.stockTransaction.findMany({
             include: {
                 stockItem: {
                     select: { name: true, sku: true },
                 },
+                user: {
+                    select: { name: true, email: true }
+                },
+                location: {
+                    select: { name: true, warehouse: { select: { name: true } } }
+                }
             },
             orderBy: { createdAt: 'desc' },
         });

@@ -3,16 +3,19 @@ const prisma = require('../config/database');
 const getDashboardStats = async (req, res) => {
     try {
         const totalItems = await prisma.stockItem.count();
-        const totalStockAgg = await prisma.stockItem.aggregate({
+        
+        // Calculate total stock across all locations
+        const totalStockAgg = await prisma.stockLevel.aggregate({
             _sum: { quantity: true },
         });
         const totalStock = totalStockAgg._sum.quantity || 0;
-        const totalTransactions = await prisma.transaction.count();
+        
+        const totalTransactions = await prisma.stockTransaction.count();
 
         // Mock data for "To Receive" and "To Deliver" as per Excalidraw
         // In a real app, these might be based on pending orders, but we'll use transaction counts for now
-        const receipts = await prisma.transaction.count({ where: { type: 'RECEIPT' } });
-        const deliveries = await prisma.transaction.count({ where: { type: 'DELIVERY' } });
+        const receipts = await prisma.stockTransaction.count({ where: { type: 'RECEIPT' } });
+        const deliveries = await prisma.stockTransaction.count({ where: { type: 'DELIVERY' } });
 
         res.json({
             totalItems,

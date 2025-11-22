@@ -6,6 +6,7 @@ require('dotenv').config();
 const authRoutes = require('./routes/auth.routes');
 const stockRoutes = require('./routes/stock.routes');
 const statsRoutes = require('./routes/stats.routes');
+const warehouseRoutes = require('./routes/warehouse.routes');
 
 const app = express();
 const PORT = process.env.PORT || 5000;
@@ -18,6 +19,7 @@ app.use(express.json());
 app.use('/api/auth', authRoutes);
 app.use('/api/stock', stockRoutes);
 app.use('/api/stats', statsRoutes);
+app.use('/api/warehouses', warehouseRoutes);
 
 app.get('/', (req, res) => {
     res.send('StockMaster API is running');
