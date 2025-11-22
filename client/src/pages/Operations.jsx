@@ -18,7 +18,7 @@ const Operations = () => {
         const fetchItems = async () => {
             try {
                 const token = localStorage.getItem('token');
-                const res = await axios.get('http://localhost:5000/api/stock/items', {
+                const res = await axios.get('/api/stock/items', {
                     headers: { Authorization: `Bearer ${token}` },
                 });
                 setItems(res.data);
@@ -37,7 +37,7 @@ const Operations = () => {
         e.preventDefault();
         try {
             const token = localStorage.getItem('token');
-            await axios.post('http://localhost:5000/api/stock/transactions', formData, {
+            await axios.post('/api/stock/transactions', formData, {
                 headers: { Authorization: `Bearer ${token}` },
             });
             setMessage('Transaction successful!');

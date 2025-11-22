@@ -32,7 +32,7 @@ const Signup = () => {
         
         try {
             const { confirmPassword, ...submitData } = formData;
-            const res = await axios.post('http://localhost:5000/api/auth/signup', submitData);
+            const res = await axios.post('/api/auth/signup', submitData);
             localStorage.setItem('token', res.data.token);
             navigate('/dashboard');
         } catch (err) {

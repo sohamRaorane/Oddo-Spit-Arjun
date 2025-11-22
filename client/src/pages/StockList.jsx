@@ -13,7 +13,7 @@ const StockList = () => {
         const fetchItems = async () => {
             try {
                 const token = localStorage.getItem('token');
-                const res = await axios.get('http://localhost:5000/api/stock/items', {
+                const res = await axios.get('/api/stock/items', {
                     headers: { Authorization: `Bearer ${token}` },
                 });
                 setItems(res.data);

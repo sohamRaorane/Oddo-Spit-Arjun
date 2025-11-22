@@ -8,7 +8,7 @@ const MoveHistory = () => {
         const fetchTransactions = async () => {
             try {
                 const token = localStorage.getItem('token');
-                const res = await axios.get('http://localhost:5000/api/stock/transactions', {
+                const res = await axios.get('/api/stock/transactions', {
                     headers: { Authorization: `Bearer ${token}` },
                 });
                 setTransactions(res.data);

@@ -23,15 +23,20 @@ app.get('/', (req, res) => {
     res.send('StockMaster API is running');
 });
 
-// Server Start
-const startServer = async () => {
-    try {
-        app.listen(PORT, () => {
-            console.log(`Server is running on port ${PORT}`);
-        });
-    } catch (error) {
-        console.error('Error starting server:', error);
-    }
-};
+// Export for Vercel
+module.exports = app;
 
-startServer();
+// Server Start
+if (require.main === module) {
+    const startServer = async () => {
+        try {
+            app.listen(PORT, () => {
+                console.log(`Server is running on port ${PORT}`);
+            });
+        } catch (error) {
+            console.error('Error starting server:', error);
+        }
+    };
+
+    startServer();
+}
